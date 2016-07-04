@@ -2,9 +2,9 @@
 
 set -e
 
-if [ -e running.pid ]; then
+if [ -e /var/grovepi/pid ]; then
 	echo "Killing old run"
-	sudo kill $(cat running.pid);
+	sudo kill $(cat /var/grovepi/pid);
 	rm running.pid;
 else
 	echo "None running"

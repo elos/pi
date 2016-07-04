@@ -3,6 +3,6 @@
 set -e
 
 ./stop.sh
-go run sense.go > stdout.txt 2> stderr.txt &
-echo $! > running.pid
+go run sense.go > /var/grovepi/stdout.txt 2> /var/grovepi/stderr.txt &
+echo $! > /var/grovepi/pid
 echo "Started"
