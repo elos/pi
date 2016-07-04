@@ -2,7 +2,9 @@
 
 set -e
 
+mkdir -p /tmp/grovepi
+
 ./stop.sh
-go run ./grovepi/cmd/grovepi/main.go -config /tmp/grovepi.config > /var/grovepi/stdout.txt 2> /var/grovepi/stderr.txt &
-echo $! > /var/grovepi/pid
+go run ./grovepi/cmd/grovepi/main.go -config /tmp/grovepi/config > /tmp/grovepi/stdout.txt 2> /tmp/grovepi/stderr.txt &
+echo $! > /tmp/grovepi/pid
 echo "Started"
