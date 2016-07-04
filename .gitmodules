@@ -1,0 +1,3 @@
+[submodule "hwio"]
+        path = vendor/github.com/mrmorphic/hwio
+        url = git://github.com/mrmorphic/hwio
