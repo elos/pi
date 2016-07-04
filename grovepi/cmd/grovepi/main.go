@@ -48,6 +48,7 @@ func main() {
 	go func() {
 		var prior *models.Event
 		for f := range out {
+			log.Print(f)
 			e := new(models.Event)
 			e.SetID(db.NewID())
 			e.OwnerId = "5698366ed6e4fe081b06570a"
