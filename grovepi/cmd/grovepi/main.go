@@ -19,6 +19,7 @@ var (
 )
 
 func main() {
+	log.Print("--- Starting GrovePi ---")
 	flag.Parse()
 	if *configPath == "" {
 		log.Fatal("*configPath = \"\", must specify config path")
@@ -28,6 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal("config.Parase(*configPath) error: %v", err)
 	}
+	log.Print("Parsed Configuration:\n%v", p)
 
 	g := grovepi.InitGrovePi(0x04)
 	e := p.Extractor()
@@ -61,6 +63,7 @@ func main() {
 			}
 			e.Data = f
 			prior = e
+			events <- e
 		}
 
 		close(events)
