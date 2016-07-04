@@ -30,7 +30,7 @@ func Parse(path string) (Plan, error) {
 
 	plan := make(Plan)
 
-	for s, p := range plan {
+	for s, p := range p {
 		sensor, ok := Sensors[s]
 		if !ok {
 			return nil, fmt.Errorf("unrecognized sensor: %q", s)
@@ -53,8 +53,8 @@ var Sensors = map[string]grovepi.Sensor{
 }
 
 var ExtractorFactories = map[grovepi.Sensor]func(grovepi.Pin) sensor.Extractor{
-	Light: LightExtractor,
-	Sound: SoundExtractor,
+	grovepi.Light: LightExtractor,
+	grovepi.Sound: SoundExtractor,
 }
 
 var Pins = map[string]grovepi.Pin{
@@ -85,7 +85,7 @@ func LightExtractor(p grovepi.Pin) sensor.Extractor {
 
 func SoundExtractor(p grovepi.Pin) sensor.Extractor {
 	return func(g grovepi.Interface) (sensor.Findings, error) {
-		sound, err := g.ReadAnalogy(p)
+		sound, err := g.ReadAnalog(p)
 		if err != nil {
 			return nil, err
 		}
@@ -94,4 +94,18 @@ func SoundExtractor(p grovepi.Pin) sensor.Extractor {
 			"sound": sound,
 		}, nil
 	}
+}
+
+func (p Plan) Extractors() []sensor.Extractor {
+	es := make([]sensor.Extractor, 0, len(p))
+
+	for sensor, pin := range p {
+		es = append(es, ExtractorFactories[sensor](pin))
+	}
+
+	return es
+}
+
+func (p Plan) Extractor() sensor.Extractor {
+	return sensor.Merge(p.Extractors()...)
 }

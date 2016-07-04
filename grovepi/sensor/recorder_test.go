@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"../sensor"
 	"github.com/elos/pi/grovepi"
-	"github.com/elos/pi/sensor"
 	"golang.org/x/net/context"
 )
 
@@ -14,9 +14,9 @@ type mockGrovePi struct {
 	err    error
 }
 
-func (gp *mockGrovePi) ReadAnalog(pin byte) (int, error)                { return gp.analog, gp.err }
-func (gp *mockGrovePi) SetPinMode(pin byte, mode grovepi.PinMode) error { return gp.err }
-func (gp *mockGrovePi) Close() error                                    { return gp.err }
+func (gp *mockGrovePi) ReadAnalog(pin grovepi.Pin) (int, error)                { return gp.analog, gp.err }
+func (gp *mockGrovePi) SetPinMode(pin grovepi.Pin, mode grovepi.PinMode) error { return gp.err }
+func (gp *mockGrovePi) Close() error                                           { return gp.err }
 
 func TestRecorder(t *testing.T) {
 	ctx, _ := context.WithTimeout(

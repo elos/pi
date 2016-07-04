@@ -3,12 +3,15 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/elos/gaia"
 	"github.com/elos/models"
 	"github.com/elos/pi/grovepi"
 	"github.com/elos/pi/grovepi/config"
 	"github.com/elos/pi/grovepi/sensor"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -26,12 +29,20 @@ func main() {
 	}
 
 	g := grovepi.InitGrovePi(0x04)
-	Execute(p, g)
+	e := p.Extractor()
 
 	out := make(chan sensor.Findings)
 	r := sensor.NewRecorder(g, 500*time.Millisecond, out)
+	go r.Record(context.Background(), e)
 
 	events := make(chan *models.Event)
+
+	db := &gaia.DB{
+		URL:      "http://elos.pw",
+		Username: "public",
+		Password: "private",
+		Client:   http.DefaultClient,
+	}
 
 	go func() {
 		var prior *models.Event
@@ -59,17 +70,7 @@ func main() {
 		}
 	}
 
-	if err := recorder.Close(); err != nil {
+	if err := r.Close(); err != nil {
 		log.Fatalf("recorder.Close() error: %v", err)
 	}
-}
-
-func Execute(p Plan, g grovepi.Interface) {
-	extractors := make([]Extractor, 0, len(p))
-	for sensor, pin := range p {
-		g.SetPinMode(pin, grovepi.Input)
-		extractors = append(extractors, config.ExtractorFactories[sensor](pin))
-	}
-
-	extractor := sensor.Merge(extractors)
 }

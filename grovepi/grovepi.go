@@ -50,8 +50,8 @@ const (
 )
 
 type Interface interface {
-	ReadAnalog(pin byte) (int, error)
-	SetPinMode(pin byte, mode PinMode) error
+	ReadAnalog(pin Pin) (int, error)
+	SetPinMode(pin Pin, mode PinMode) error
 	Close() error
 }
 
@@ -79,7 +79,7 @@ func (grovePi *GrovePi) Close() error {
 }
 
 func (grovePi *GrovePi) ReadAnalog(p Pin) (int, error) {
-	pin = byte(p)
+	pin := byte(p)
 	b := []byte{ANALOG_READ, pin, 0, 0}
 	err := grovePi.i2cDevice.Write(1, b)
 	if err != nil {
@@ -120,7 +120,8 @@ func (grovePi *GrovePi) DigitalWrite(pin byte, val byte) error {
 	return nil
 }
 
-func (grovePi *GrovePi) SetPinMode(pin byte, mode PinMode) error {
+func (grovePi *GrovePi) SetPinMode(p Pin, mode PinMode) error {
+	pin := byte(p)
 	var b []byte
 	switch mode {
 	case Output:
