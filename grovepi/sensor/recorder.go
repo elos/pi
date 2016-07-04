@@ -1,6 +1,7 @@
 package sensor
 
 import (
+	"log"
 	"time"
 
 	"github.com/elos/pi/grovepi"
@@ -57,8 +58,8 @@ read:
 			for _, e := range extractors {
 				f, err := e(r.g)
 				if err != nil {
+					log.Printf("TRANSIENT ERROR: %v", err)
 					r.err = err
-					break read
 				}
 				r.out <- f
 			}

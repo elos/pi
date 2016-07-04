@@ -62,7 +62,7 @@ type Interface interface {
 	// SetPinMode sets the pin mode for reading or writing.
 	SetPinMode(pin Pin, mode PinMode) error
 
-	// ReadAnalogy reads the analog value at the pin.
+	// ReadAnalog reads the analog value at the pin.
 	ReadAnalog(pin Pin) (int, error)
 
 	// Close disables the underlying I2C module handle.
