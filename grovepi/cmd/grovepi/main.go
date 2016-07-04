@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	configPath = flag.String("config", "/tmp/grove.config", "the configuration path for the sensors to load")
+	configPath = flag.String("config", "/tmp/grovepi/config", "the configuration path for the sensors to load")
 )
 
 func main() {
