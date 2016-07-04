@@ -5,7 +5,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/elos/pi/grovepi"
 	"github.com/mrmorphic/hwio"
 )
 
@@ -79,7 +78,7 @@ func (grovePi *GrovePi) Close() error {
 	return grovePi.i2cmodule.Disable()
 }
 
-func (grovePi *GrovePi) ReadAnalog(p grovepi.Pin) (int, error) {
+func (grovePi *GrovePi) ReadAnalog(p Pin) (int, error) {
 	pin = byte(p)
 	b := []byte{ANALOG_READ, pin, 0, 0}
 	err := grovePi.i2cDevice.Write(1, b)
