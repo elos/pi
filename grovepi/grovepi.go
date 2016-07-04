@@ -8,21 +8,17 @@ import (
 	"github.com/mrmorphic/hwio"
 )
 
-type Sensor int
-
-const (
-	Light Sensor = iota
-	Sound
-)
-
+// A Pin is the physical location on the board to which
+// we read and write voltages.
 type Pin byte
 
 const (
-	//Pins
+	// Analog pins.
 	A0 Pin = 0
 	A1     = 1
 	A2     = 2
 
+	// Digital pins.
 	D2 = 2
 	D3 = 3
 	D4 = 4
@@ -32,16 +28,8 @@ const (
 	D8 = 8
 )
 
-const (
-	//Cmd format
-	DIGITAL_READ  = 1
-	DIGITAL_WRITE = 2
-	ANALOG_READ   = 3
-	ANALOG_WRITE  = 4
-	PIN_MODE      = 5
-	DHT_READ      = 40
-)
-
+// PinMode specifies the direction of interaction.
+// (Output or Input)
 type PinMode int
 
 const (
@@ -49,19 +37,46 @@ const (
 	Input
 )
 
+// A Sensor is one of the Grove Seeed studio sensor, which
+// can be connected to the GrovePi board.
+type Sensor int
+
+const (
+	Light Sensor = iota
+	Sound
+)
+
+type command byte
+
+const (
+	digitalRead  = 1
+	digitalWrite = 2
+	analogRead   = 3
+	analogWrite  = 4
+	pinMode      = 5
+	dhtRead      = 40
+)
+
+// Interface specifies interaction with the GrovePi.
 type Interface interface {
-	ReadAnalog(pin Pin) (int, error)
+	// SetPinMode sets the pin mode for reading or writing.
 	SetPinMode(pin Pin, mode PinMode) error
+
+	// ReadAnalogy reads the analog value at the pin.
+	ReadAnalog(pin Pin) (int, error)
+
+	// Close disables the underlying I2C module handle.
 	Close() error
 }
 
-type GrovePi struct {
+// grovepi is the implementation of the Interface.
+type grovePi struct {
 	i2cmodule hwio.I2CModule
 	i2cDevice hwio.I2CDevice
 }
 
-func InitGrovePi(address int) *GrovePi {
-	grovePi := new(GrovePi)
+func InitGrovePi(address int) Interface {
+	grovePi := new(grovePi)
 	m, err := hwio.GetModule("i2c")
 	if err != nil {
 		fmt.Printf("could not get i2c module: %s\n", err)
@@ -74,13 +89,13 @@ func InitGrovePi(address int) *GrovePi {
 	return grovePi
 }
 
-func (grovePi *GrovePi) Close() error {
+func (grovePi *grovePi) Close() error {
 	return grovePi.i2cmodule.Disable()
 }
 
-func (grovePi *GrovePi) ReadAnalog(p Pin) (int, error) {
+func (grovePi *grovePi) ReadAnalog(p Pin) (int, error) {
 	pin := byte(p)
-	b := []byte{ANALOG_READ, pin, 0, 0}
+	b := []byte{analogRead, pin, 0, 0}
 	err := grovePi.i2cDevice.Write(1, b)
 	if err != nil {
 		return 0, err
@@ -96,8 +111,8 @@ func (grovePi *GrovePi) ReadAnalog(p Pin) (int, error) {
 	return ((v1 * 256) + v2), nil
 }
 
-func (grovePi *GrovePi) DigitalRead(pin byte) (byte, error) {
-	b := []byte{DIGITAL_READ, pin, 0, 0}
+func (grovePi *grovePi) DigitalRead(pin byte) (byte, error) {
+	b := []byte{digitalRead, pin, 0, 0}
 	err := grovePi.i2cDevice.Write(1, b)
 	if err != nil {
 		return 0, err
@@ -110,8 +125,8 @@ func (grovePi *GrovePi) DigitalRead(pin byte) (byte, error) {
 	return val, nil
 }
 
-func (grovePi *GrovePi) DigitalWrite(pin byte, val byte) error {
-	b := []byte{DIGITAL_WRITE, pin, val, 0}
+func (grovePi *grovePi) DigitalWrite(pin byte, val byte) error {
+	b := []byte{digitalWrite, pin, val, 0}
 	err := grovePi.i2cDevice.Write(1, b)
 	time.Sleep(100 * time.Millisecond)
 	if err != nil {
@@ -120,14 +135,14 @@ func (grovePi *GrovePi) DigitalWrite(pin byte, val byte) error {
 	return nil
 }
 
-func (grovePi *GrovePi) SetPinMode(p Pin, mode PinMode) error {
+func (grovePi *grovePi) SetPinMode(p Pin, mode PinMode) error {
 	pin := byte(p)
 	var b []byte
 	switch mode {
 	case Output:
-		b = []byte{PIN_MODE, pin, 1, 0}
+		b = []byte{pinMode, pin, 1, 0}
 	case Input:
-		b = []byte{PIN_MODE, pin, 0, 0}
+		b = []byte{pinMode, pin, 0, 0}
 	default:
 		return fmt.Errorf("unknown pin mode: %d", mode)
 	}
@@ -139,8 +154,8 @@ func (grovePi *GrovePi) SetPinMode(p Pin, mode PinMode) error {
 	return nil
 }
 
-func (grovePi *GrovePi) ReadDHT(pin byte) (float32, float32, error) {
-	b := []byte{DHT_READ, pin, 1, 0}
+func (grovePi *grovePi) ReadDHT(pin byte) (float32, float32, error) {
+	b := []byte{dhtRead, pin, 1, 0}
 	rawdata, err := grovePi.readDHTRawData(b)
 	if err != nil {
 		return 0, 0, err
@@ -156,7 +171,7 @@ func (grovePi *GrovePi) ReadDHT(pin byte) (float32, float32, error) {
 	return t, h, nil
 }
 
-func (grovePi *GrovePi) readDHTRawData(cmd []byte) ([]byte, error) {
+func (grovePi *grovePi) readDHTRawData(cmd []byte) ([]byte, error) {
 
 	err := grovePi.i2cDevice.Write(1, cmd)
 	if err != nil {
