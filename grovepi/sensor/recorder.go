@@ -60,6 +60,7 @@ read:
 				if err != nil {
 					log.Printf("TRANSIENT ERROR: %v", err)
 					r.err = err
+					continue read
 				}
 				r.out <- f
 			}

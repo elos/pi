@@ -71,7 +71,7 @@ func main() {
 
 	for e := range events {
 		if err := db.Save(e); err != nil {
-			log.Fatalf("db.Save error: %v", err)
+			log.Printf("db.Save error: %v", err)
 		}
 	}
 

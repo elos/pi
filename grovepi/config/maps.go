@@ -47,14 +47,28 @@ func Parse(path string) (Plan, error) {
 	return plan, nil
 }
 
+func (p Plan) Extractors() []sensor.Extractor {
+	es := make([]sensor.Extractor, 0, len(p))
+
+	for sensor, pin := range p {
+		es = append(es, ExtractorFactories[sensor](pin))
+	}
+
+	return es
+}
+
+func (p Plan) Extractor() sensor.Extractor {
+	return sensor.Merge(p.Extractors()...)
+}
+
 var Sensors = map[string]grovepi.Sensor{
 	"light": grovepi.Light,
 	"sound": grovepi.Sound,
 }
 
 var ExtractorFactories = map[grovepi.Sensor]func(grovepi.Pin) sensor.Extractor{
-	grovepi.Light: LightExtractor,
-	grovepi.Sound: SoundExtractor,
+	grovepi.Light: NewLightExtractor,
+	grovepi.Sound: NewSoundExtractor,
 }
 
 var Pins = map[string]grovepi.Pin{
@@ -70,7 +84,7 @@ var Pins = map[string]grovepi.Pin{
 	"D7": grovepi.D7,
 }
 
-func LightExtractor(p grovepi.Pin) sensor.Extractor {
+func NewLightExtractor(p grovepi.Pin) sensor.Extractor {
 	return func(g grovepi.Interface) (sensor.Findings, error) {
 		light, err := g.ReadAnalog(p)
 		if err != nil {
@@ -83,7 +97,7 @@ func LightExtractor(p grovepi.Pin) sensor.Extractor {
 	}
 }
 
-func SoundExtractor(p grovepi.Pin) sensor.Extractor {
+func NewSoundExtractor(p grovepi.Pin) sensor.Extractor {
 	return func(g grovepi.Interface) (sensor.Findings, error) {
 		sound, err := g.ReadAnalog(p)
 		if err != nil {
@@ -94,18 +108,4 @@ func SoundExtractor(p grovepi.Pin) sensor.Extractor {
 			"sound": sound,
 		}, nil
 	}
-}
-
-func (p Plan) Extractors() []sensor.Extractor {
-	es := make([]sensor.Extractor, 0, len(p))
-
-	for sensor, pin := range p {
-		es = append(es, ExtractorFactories[sensor](pin))
-	}
-
-	return es
-}
-
-func (p Plan) Extractor() sensor.Extractor {
-	return sensor.Merge(p.Extractors()...)
 }
