@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"log"
 	"net/http"
@@ -40,11 +42,21 @@ func main() {
 
 	events := make(chan *models.Event)
 
+	pool := x509.NewCertPool()
+	ok := pool.AppendCertsFromPEM([]byte(rootPEM))
+	if !ok {
+		log.Fatal("failed to parse rootPEM")
+	}
+
 	db := &gaia.DB{
 		URL:      "https://elos.pw",
 		Username: "public",
 		Password: "private",
-		Client:   http.DefaultClient,
+		Client: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{RootCAs: pool},
+			},
+		},
 	}
 
 	go func() {
@@ -79,3 +91,34 @@ func main() {
 		log.Fatalf("recorder.Close() error: %v", err)
 	}
 }
+
+const rootPEM = `
+-----BEGIN CERTIFICATE-----
+MIIE/zCCA+egAwIBAgISAyWO1mzQY7ckQXgEN7sdCmA5MA0GCSqGSIb3DQEBCwUA
+MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
+ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNjA3MzEyMjM3MDBaFw0x
+NjEwMjkyMjM3MDBaMBIxEDAOBgNVBAMTB2Vsb3MucHcwggEiMA0GCSqGSIb3DQEB
+AQUAA4IBDwAwggEKAoIBAQC9eUxrKjs3tseQcLjs3y0zP7lZjFmHtpWRhSdLkBtG
+LfvWRle3eNOiCB23iBIi52uA41HYXjFnOxZJqkSSC0L28iyQ0AejuSUz7EMGEl3X
+ZditiLMTLMx49+1YE2cUl79XSr42XtJu8KssSUXCo6kuiMo6YO6lVB4/FKrEIt0n
+Cyclk5KAurpopytDaojckgiC+V22TV8/KBjGJdMbvBnrcnyhME7UJGNrWlccndR7
+F81eLpbUY6mkJvo9zmmPUvD1IkxDlYnECzcDRkc/HLLXOpFIQrwjzejxyNv4+thR
+aQIhKL53Um+3M7wZg+FlZnKvk/CbM/JPXe/bZPUb9xbVAgMBAAGjggIVMIICETAO
+BgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwG
+A1UdEwEB/wQCMAAwHQYDVR0OBBYEFAs23FhAEuVRpdhwpcdHFiscrQeNMB8GA1Ud
+IwQYMBaAFKhKamMEfd265tE5t6ZFZe/zqOyhMHAGCCsGAQUFBwEBBGQwYjAvBggr
+BgEFBQcwAYYjaHR0cDovL29jc3AuaW50LXgzLmxldHNlbmNyeXB0Lm9yZy8wLwYI
+KwYBBQUHMAKGI2h0dHA6Ly9jZXJ0LmludC14My5sZXRzZW5jcnlwdC5vcmcvMB8G
+A1UdEQQYMBaCB2Vsb3MucHeCC3d3dy5lbG9zLnB3MIH+BgNVHSAEgfYwgfMwCAYG
+Z4EMAQIBMIHmBgsrBgEEAYLfEwEBATCB1jAmBggrBgEFBQcCARYaaHR0cDovL2Nw
+cy5sZXRzZW5jcnlwdC5vcmcwgasGCCsGAQUFBwICMIGeDIGbVGhpcyBDZXJ0aWZp
+Y2F0ZSBtYXkgb25seSBiZSByZWxpZWQgdXBvbiBieSBSZWx5aW5nIFBhcnRpZXMg
+YW5kIG9ubHkgaW4gYWNjb3JkYW5jZSB3aXRoIHRoZSBDZXJ0aWZpY2F0ZSBQb2xp
+Y3kgZm91bmQgYXQgaHR0cHM6Ly9sZXRzZW5jcnlwdC5vcmcvcmVwb3NpdG9yeS8w
+DQYJKoZIhvcNAQELBQADggEBAFQKygv4TEnci3vMwoHHW9bTY6tEozqrd6X1aHsG
+1kFOnivo56zPEcyl2KDvQZPrTGG1dY26s5vcexvM3xtqKokyTvHf7G4vFmtnhE9+
+G9B8lDwyhA22u2XbGYJu0snQ+b3xUvz+6X6yTGgPMiW8YqPBNTVBoKA4liLnSRGK
+vBK3K4osN3FPNQdHqRr/CDGN2k1DkYdhGl9tgnstyFQ5eirIUu1wwA0k8OuBWw4+
++JWch9QNfia0mLDDZLeVYY2RDJTq2wE9Dp2HvLxcCV0BPQVK/5VsIMXVkglOUftf
+2PskvS0wWjNi2Nd6Ev2mM26UHdIZs9KJuy1/w9BGrBNEF1s=
+-----END CERTIFICATE-----`
