@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"crypto/x509"
 	"flag"
 	"log"
@@ -52,11 +51,14 @@ func main() {
 		URL:      "https://elos.pw",
 		Username: "public",
 		Password: "private",
-		Client: &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{RootCAs: pool},
+		/*
+			Client: &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{RootCAs: pool},
+				},
 			},
-		},
+		*/
+		Client: http.DefaultClient,
 	}
 
 	go func() {
