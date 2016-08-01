@@ -41,7 +41,7 @@ func main() {
 	events := make(chan *models.Event)
 
 	db := &gaia.DB{
-		URL:      "http://elos.pw",
+		URL:      "https://elos.pw",
 		Username: "public",
 		Password: "private",
 		Client:   http.DefaultClient,
