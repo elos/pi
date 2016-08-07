@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 
 	"github.com/elos/pi/grovepi"
 	"github.com/elos/pi/grovepi/config"
@@ -56,9 +55,11 @@ func main() {
 
 	conn, err := grpc.Dial(
 		*dbAddr,
-		grpc.WithTransportCredentials(
-			credentials.NewClientTLSFromCert(pool, *dbAddr),
-		),
+		/*
+			grpc.WithTransportCredentials(
+				credentials.NewClientTLSFromCert(pool, *dbAddr),
+			),
+		*/
 		grpc.WithPerRPCCredentials(
 			auth.RawCredentials("public", "private"),
 		),
