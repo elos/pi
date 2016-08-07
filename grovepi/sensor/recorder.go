@@ -5,24 +5,21 @@ import (
 	"time"
 
 	"github.com/elos/pi/grovepi"
+	"github.com/elos/x/models"
 	"golang.org/x/net/context"
 )
 
-type Findings map[string]interface{}
-
-type Extractor func(g grovepi.Interface) (Findings, error)
+type Extractor func(g grovepi.Interface) ([]*models.Quantity, error)
 
 func Merge(extractors ...Extractor) Extractor {
-	return func(g grovepi.Interface) (Findings, error) {
-		findings := make(Findings)
+	return func(g grovepi.Interface) ([]*models.Quantity, error) {
+		findings := make([]*models.Quantity, 0)
 		for _, extractor := range extractors {
 			f, err := extractor(g)
 			if err != nil {
 				return nil, err
 			}
-			for k, v := range f {
-				findings[k] = v
-			}
+			findings = append(findings, f...)
 		}
 
 		return findings, nil
@@ -35,7 +32,7 @@ type Recorder interface {
 	Close() error
 }
 
-func NewRecorder(g grovepi.Interface, i time.Duration, out chan<- Findings) Recorder {
+func NewRecorder(g grovepi.Interface, i time.Duration, out chan<- []*models.Quantity) Recorder {
 	return &recorder{
 		g:        g,
 		interval: i,
@@ -46,7 +43,7 @@ func NewRecorder(g grovepi.Interface, i time.Duration, out chan<- Findings) Reco
 type recorder struct {
 	g        grovepi.Interface
 	interval time.Duration
-	out      chan<- Findings
+	out      chan<- []*models.Quantity
 	err      error
 }
 

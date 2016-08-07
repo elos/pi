@@ -7,6 +7,7 @@ import (
 
 	"github.com/elos/pi/grovepi"
 	"github.com/elos/pi/grovepi/sensor"
+	"github.com/elos/x/models"
 )
 
 // i.e.,
@@ -85,27 +86,37 @@ var Pins = map[string]grovepi.Pin{
 }
 
 func NewLightExtractor(p grovepi.Pin) sensor.Extractor {
-	return func(g grovepi.Interface) (sensor.Findings, error) {
+	return func(g grovepi.Interface) ([]*models.Quantity, error) {
 		light, err := g.ReadAnalog(p)
 		if err != nil {
 			return nil, err
 		}
 
-		return map[string]interface{}{
-			"light": light,
+		return []*models.Quantity{
+			{
+				Name:      "grovepi.light",
+				Unit:      models.Quantity_GROVEPI_LIGHT,
+				Magnitude: 0,
+				Value:     float64(light),
+			},
 		}, nil
 	}
 }
 
 func NewSoundExtractor(p grovepi.Pin) sensor.Extractor {
-	return func(g grovepi.Interface) (sensor.Findings, error) {
+	return func(g grovepi.Interface) ([]*models.Quantity, error) {
 		sound, err := g.ReadAnalog(p)
 		if err != nil {
 			return nil, err
 		}
 
-		return map[string]interface{}{
-			"sound": sound,
+		return []*models.Quantity{
+			{
+				Name:      "grovepi.sound",
+				Unit:      models.Quantity_GROVEPI_SOUND,
+				Magnitude: 0,
+				Value:     float64(sound),
+			},
 		}, nil
 	}
 }

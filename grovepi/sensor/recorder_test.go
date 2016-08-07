@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"../sensor"
 	"github.com/elos/pi/grovepi"
+	"github.com/elos/pi/grovepi/sensor"
+	"github.com/elos/x/models"
 	"golang.org/x/net/context"
 )
 
@@ -31,23 +32,31 @@ func TestRecorder(t *testing.T) {
 	})
 
 	// 6 reads
-	out := make(chan sensor.Findings, 6)
+	out := make(chan []*models.Quantity, 6)
 	r := sensor.NewRecorder(g, 50*time.Millisecond, out)
 
-	r.Record(ctx, func(g grovepi.Interface) (sensor.Findings, error) {
+	r.Record(ctx, func(g grovepi.Interface) ([]*models.Quantity, error) {
 		a, err := g.ReadAnalog(grovepi.A0)
 		if err != nil {
 			return nil, err
 		}
 
-		return map[string]interface{}{
-			"light": a,
+		return []*models.Quantity{
+			{
+				Unit:      models.Quantity_GROVEPI_LIGHT,
+				Magnitude: 0,
+				Value:     float64(a),
+			},
 		}, nil
 	})
 
 	for f := range out {
-		if _, ok := f["light"]; !ok {
-			t.Errorf("f[\"light\"]: got %t, want %t", ok, true)
+		if got, want := len(f), 1; got != want {
+			t.Fatalf("len(f): got %d, want %d", got, want)
+		}
+
+		if got, want := f[0].Unit, models.Quantity_GROVEPI_LIGHT; got != want {
+			t.Errorf("f[0].Unit: got %s, want %s", got, want)
 		}
 	}
 
