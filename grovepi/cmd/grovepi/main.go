@@ -60,6 +60,7 @@ func main() {
 				credentials.NewClientTLSFromCert(pool, *dbAddr),
 			),
 		*/
+		grpc.WithInsecure(),
 		grpc.WithPerRPCCredentials(
 			auth.RawCredentials("public", "private"),
 		),
@@ -101,7 +102,7 @@ func main() {
 			},
 		)
 		if err != nil {
-			log.Printf("db.Save error: %v", err)
+			log.Printf("dbclient.Mutate error: %v", err)
 		}
 	}
 
